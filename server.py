@@ -4,10 +4,9 @@ from diff_match_patch import diff_match_patch
 import threading
 import glob
 
-sio = socketio.AsyncServer()
-app = web.Application()
-sio.attach(app)
+
 dmp = diff_match_patch()
+sio = socketio.AsyncServer()
 
 
 class Document:
@@ -24,11 +23,11 @@ class Document:
         self.apply_patch(patch)
 
     def save(self):
-        with open('data/' + self.filename, 'w') as f:
+        with open(self.filename, 'w') as f:
             f.write(self.contents)
 
 
-docs = [Document("example.md")]
+docs = []
 
 
 def save_all_loop():
@@ -67,9 +66,14 @@ def disconnect(sid):
     print('disconnect', sid)
 
 
-app.router.add_static('/static/', 'static', name='static')
-app.router.add_get('/', index)
+def start_notes(port=8080):
+    init_docs()
+    app = web.Application()
+    app.router.add_static('/static/', 'static', name='static')
+    app.router.add_get('/', index)
+    sio.attach(app)
+    web.run_app(app, port=port)
+
 
 if __name__ == '__main__':
-    init_docs()
-    web.run_app(app)
+    start_notes(port=8080)
