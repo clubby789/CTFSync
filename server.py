@@ -33,6 +33,7 @@ docs = []
 def save_all_loop():
     for doc in docs:
         doc.save()
+    # Janky event loop solution
     threading.Timer(5, save_all_loop).start()
 
 
@@ -54,7 +55,7 @@ async def connect(sid, environ):
     await sio.emit('dump', docs[0].contents, namespace='/chat', to=sid)
 
 
-@sio.on('chat message', namespace='/chat')
+@sio.on('patch', namespace='/chat')
 async def message(sid, data):
     docs[0].apply_diff(data)
     await sio.emit('patch', data, namespace='/chat',

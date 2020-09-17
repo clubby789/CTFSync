@@ -44,5 +44,5 @@ function emit_patch(patch) {
   var diff = dmp.patch_make(shadow, editor.value());
   var patch = dmp.patch_toText(diff);
   shadow = editor.value();
-  socket.emit('chat message', patch);
+  socket.emit('patch', patch);
 }
