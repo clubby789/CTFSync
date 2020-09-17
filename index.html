@@ -45,7 +45,7 @@
         for (var i=0; i < patchOb.length; i++) {
           newpos += patchOb[i].length2 - patchOb[i].length1;
           processed += patchOb[i].length1;
-          if (processed > oldpos) {
+          if (processed >= oldpos) {
             break;
           }
         }
