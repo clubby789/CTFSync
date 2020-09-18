@@ -52,20 +52,20 @@ async def index(request):
         return web.Response(text=f.read(), content_type='text/html')
 
 
-@sio.on('connect', namespace='/chat')
+@sio.on('connect')
 async def connect(sid, environ):
     print("connect", sid)
-    await sio.emit('dump', docs[0].contents, namespace='/chat', to=sid)
+    await sio.emit('dump', docs[0].contents, to=sid)
 
 
-@sio.on('patch', namespace='/chat')
+@sio.on('patch')
 async def message(sid, data):
     docs[0].apply_diff(data)
-    await sio.emit('patch', data, namespace='/chat',
+    await sio.emit('patch', data,
                    broadcast=True, skip_sid=sid)
 
 
-@sio.on('disconnect', namespace='/chat')
+@sio.on('disconnect')
 def disconnect(sid):
     print('disconnect', sid)
 

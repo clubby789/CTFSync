@@ -1,4 +1,4 @@
-var socket = io('http://localhost:8080/chat');
+var socket = io();
 var latest;
 var timer;
 let interval = 100;
