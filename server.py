@@ -38,6 +38,9 @@ def save_all_loop():
 
 
 def init_docs():
+    if len(glob.glob('data/*')) == 0:
+        open('data/example.md', 'a').close()
+        # If there are no files, create a dummy one
     for filename in glob.glob('data/*'):
         docs.append(Document(filename))
     save_all_loop()
@@ -74,7 +77,3 @@ def start_notes(port=8080):
     app.router.add_get('/', index)
     sio.attach(app)
     web.run_app(app, port=port)
-
-
-if __name__ == '__main__':
-    start_notes(port=8080)
