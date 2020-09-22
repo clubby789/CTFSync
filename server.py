@@ -3,10 +3,32 @@ import socketio
 from diff_match_patch import diff_match_patch
 import threading
 import glob
+import json
 
 
 dmp = diff_match_patch()
 sio = socketio.AsyncServer()
+
+
+class ConnectionManager:
+    clients = {}
+    colours = ['red', 'blue', 'green', 'yellow', 'magenta', 'cyan'][::-1]
+
+    def add_client(self, client):
+        self.clients[client.sid] = client
+        client.colour = self.colours.pop()
+
+    def remove_client(self, sid):
+        self.colours.append(self.get_client(sid).colour)
+        del self.clients[sid]
+
+    def get_client(self, sid):
+        return self.clients[sid]
+
+
+class Client:
+    def __init__(self, sid):
+        self.sid = sid
 
 
 class Document:
@@ -28,6 +50,7 @@ class Document:
 
 
 docs = []
+conns = ConnectionManager()
 
 
 def save_all_loop():
@@ -52,20 +75,28 @@ async def index(request):
         return web.Response(text=f.read(), content_type='text/html')
 
 
-@sio.on('connect', namespace='/chat')
+@sio.on('connect',)
 async def connect(sid, environ):
     print("connect", sid)
-    await sio.emit('dump', docs[0].contents, namespace='/chat', to=sid)
+    client = Client(sid)
+    conns.add_client(client)
+    await sio.emit('dump', docs[0].contents, to=sid)
 
 
-@sio.on('patch', namespace='/chat')
+@sio.on('patch')
 async def message(sid, data):
-    docs[0].apply_diff(data)
-    await sio.emit('patch', data, namespace='/chat',
+    data = json.loads(data)
+    patch, doc, pos = data['patch'], data['doc'], data['pos']
+    docs[doc].apply_diff(patch)
+    broadPatch = {"patch": patch, "doc": doc, "cursor": {
+                  "pos": pos, "colour": conns.get_client(sid).colour
+                  }
+                  }
+    await sio.emit('patch', json.dumps(broadPatch),
                    broadcast=True, skip_sid=sid)
 
 
-@sio.on('disconnect', namespace='/chat')
+@sio.on('disconnect')
 def disconnect(sid):
     print('disconnect', sid)
 
@@ -77,3 +108,7 @@ def start_notes(port=8080):
     app.router.add_get('/', index)
     sio.attach(app)
     web.run_app(app, port=port)
+
+
+if __name__ == "__main__":
+    start_notes()

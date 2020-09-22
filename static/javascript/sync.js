@@ -1,4 +1,4 @@
-var socket = io('http://localhost:8080/chat');
+var socket = io();
 var latest;
 var timer;
 let interval = 100;
@@ -22,7 +22,8 @@ socket.on('dump', function(contents) {
   shadow = contents;
 });
 socket.on('patch', function(patch){
-  var patchOb = dmp.patch_fromText(patch);
+  var data = JSON.parse(patch);
+  var patchOb = dmp.patch_fromText(data['patch']);
   var oldpos = editor.codemirror.indexFromPos(editor.codemirror.getCursor());
   var newpos = oldpos; // Hold new offset
   var processed = 0; // Hold number of chars iterated through in the patches
@@ -38,11 +39,37 @@ socket.on('patch', function(patch){
   res = dmp.patch_apply(patchOb, shadow);
   shadow = res[0];
   editor.codemirror.setCursor(editor.codemirror.posFromIndex(newpos));
+  var cursor = editor.codemirror.posFromIndex(data['cursor']['pos']);
+  var cursorCoords =  editor.codemirror.cursorCoords(cursor);
+  var cursorElement = document.createElement('span');
+  cursorElement.style.borderLeftStyle = 'solid';
+  cursorElement.style.borderLeftWidth = '2px';
+  cursorElement.style.borderLeftColor = data['cursor']['colour'];
+  cursorElement.style.height = `${(cursorCoords.bottom - cursorCoords.top)}px`;
+  cursorElement.style.padding = 0;
+  cursorElement.style.zIndex = 0;
+
+  marker = editor.codemirror.setBookmark(cursor, {widget: cursorElement});
+  setTimeout(fade_and_delete, 1000, cursorElement);
 });
+
+function fade_and_delete(element) {
+  var seconds = 2;
+  element.style.transition = "opacity "+seconds+"s ease";
+  element.style.opacity = 0;
+  setTimeout(function() {
+    element.parentNode.removeChild(element);
+}, 200);
+}
 
 function emit_patch(patch) {
   var diff = dmp.patch_make(shadow, editor.value());
   var patch = dmp.patch_toText(diff);
   shadow = editor.value();
-  socket.emit('patch', patch);
+  var broadPatch = {
+    "patch": patch,
+    "doc": 0,
+    "pos": editor.codemirror.indexFromPos(editor.codemirror.getCursor())
+  }
+  socket.emit('patch', JSON.stringify(broadPatch));
 }
