@@ -4,6 +4,8 @@ var timer;
 let interval = 100;
 var shadow;
 var editor = new SimpleMDE({ element: document.getElementById("msgdoc") });
+var docs = [];
+
 editor.codemirror.on('keyup', function() {
   clearTimeout(timer);
   timer = setTimeout(emit_patch, interval);
@@ -17,10 +19,26 @@ let dmp = new diff_match_patch();
 
 socket.on('connect', function(){console.log('Connected to server')});
 socket.on('disconnect', function(){console.log('Disconnected from server')});
+socket.on('doclist', function(contents) {
+  var sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = "";
+  // Clear previous file list
+  docs = JSON.parse(contents);
+  for (var i = 0; i < docs.length; i++) {
+    console.log(docs[i]);
+    var node = document.createElement("a");
+    node.href = "#";
+    node.setAttribute('onclick', `javascript:getDoc(${i});`);
+    node.innerText = docs[i];
+    sidebar.appendChild(node);
+  }
+});
+
 socket.on('dump', function(contents) {
   editor.value(contents);
   shadow = contents;
 });
+
 socket.on('patch', function(patch){
   var data = JSON.parse(patch);
   var patchOb = dmp.patch_fromText(data['patch']);
@@ -72,4 +90,8 @@ function emit_patch(patch) {
     "pos": editor.codemirror.indexFromPos(editor.codemirror.getCursor())
   }
   socket.emit('patch', JSON.stringify(broadPatch));
+}
+
+function getDoc(index) {
+  socket.emit('get_doc', index);
 }
