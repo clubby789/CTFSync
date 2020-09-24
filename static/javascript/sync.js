@@ -3,7 +3,17 @@ var latest;
 var timer;
 let interval = 100;
 var shadow;
-var editor = new SimpleMDE({ element: document.getElementById("msgdoc") });
+var config = { 
+                element: document.getElementById("msgdoc"),
+                spellChecker: false,
+                autofocus: true,
+                renderingConfig: {
+                  singleLineBreaks: true,
+                  codeSyntaxHighlighting: true
+                },
+                tabSize: 4
+              };
+var editor = new SimpleMDE({ element: document.getElementById("msgdoc"), spellChecker: false, autofocus: true,  });
 var currentDoc;
 var docs = [];
 
