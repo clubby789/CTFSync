@@ -4,6 +4,7 @@ var timer;
 let interval = 100;
 var shadow;
 var editor = new SimpleMDE({ element: document.getElementById("msgdoc") });
+var currentDoc;
 var docs = [];
 
 editor.codemirror.on('keyup', function() {
@@ -86,12 +87,13 @@ function emit_patch(patch) {
   shadow = editor.value();
   var broadPatch = {
     "patch": patch,
-    "doc": 0,
+    "doc": currentDoc,
     "pos": editor.codemirror.indexFromPos(editor.codemirror.getCursor())
   }
   socket.emit('patch', JSON.stringify(broadPatch));
 }
 
 function getDoc(index) {
+  currentDoc = index;
   socket.emit('get_doc', index);
 }
