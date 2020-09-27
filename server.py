@@ -54,6 +54,7 @@ class Folder:
 
     def __init__(self, path):
         self.path = path
+        self.contents = os.listdir(path)
         for item in glob.glob(path + "/*"):
             item = os.path.basename(item)
             if os.path.isfile(os.path.join(path, item)):
@@ -125,6 +126,10 @@ async def connect(sid, environ):
     print("connect", sid)
     client = Client(sid)
     conns.add_client(client)
+
+
+@sio.on('listdocs')
+async def listdocs(sid):
     await sio.emit('doclist', json.dumps([x.name for x in docs.files]),
                    to=sid)
 

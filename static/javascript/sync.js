@@ -28,11 +28,14 @@ editor.codemirror.on('keydown', function() {
 
 let dmp = new diff_match_patch();
 
-socket.on('connect', function(){console.log('Connected to server')});
+socket.on('connect', function(){
+  console.log('Connected to server')
+  socket.emit('listdocs');
+});
 socket.on('disconnect', function(){console.log('Disconnected from server')});
 socket.on('doclist', function(contents) {
-  var sidebar = document.getElementById('sidebar');
-  sidebar.innerHTML = "";
+  var filelist = document.getElementById('filelist');
+  filelist.innerHTML = "";
   // Clear previous file list
   docs = JSON.parse(contents);
   for (var i = 0; i < docs.length; i++) {
@@ -41,7 +44,7 @@ socket.on('doclist', function(contents) {
     node.href = "#";
     node.setAttribute('onclick', `javascript:getDoc(${i});`);
     node.innerText = docs[i];
-    sidebar.appendChild(node);
+    filelist.appendChild(node);
   }
 });
 
@@ -107,3 +110,7 @@ function getDoc(index) {
   currentDoc = index;
   socket.emit('get_doc', index);
 }
+
+const interval = setInterval(function() {
+  socket.emit('listdocs', JSON.stringify(broadPatch));
+}, 10000);
