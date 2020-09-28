@@ -50,9 +50,8 @@ class Document:
 
 
 class Folder:
-    items = []
-
     def __init__(self, path):
+        self.items = []
         self.path = path
         self.contents = os.listdir(path)
         for item in glob.glob(path + "/*"):
@@ -150,6 +149,14 @@ async def message(sid, data):
                   }
     await sio.emit('patch', json.dumps(broadPatch),
                    broadcast=True, skip_sid=sid)
+
+
+@sio.on('addfile')
+async def addfile(sid, data):
+    global docs
+    with open("data/" + data, 'w'):
+        pass
+    docs = Folder('data')
 
 
 @sio.on('disconnect')

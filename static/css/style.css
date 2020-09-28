@@ -56,3 +56,7 @@ html {
     margin-top: 5px;
     cursor: pointer;
  }
+
+.selected-doc a{
+  color: #f1f1f1;
+}

@@ -14,7 +14,7 @@ var config = {
                 tabSize: 4
               };
 var editor = new SimpleMDE({ element: document.getElementById("msgdoc"), spellChecker: false, autofocus: true,  });
-var currentDoc;
+var currentDoc = -1;
 var docs = [];
 
 editor.codemirror.on('keyup', function() {
@@ -33,15 +33,18 @@ socket.on('connect', function(){
   socket.emit('listdocs');
 });
 socket.on('disconnect', function(){console.log('Disconnected from server')});
+
 socket.on('doclist', function(contents) {
   var filelist = document.getElementById('filelist');
   filelist.innerHTML = "";
   // Clear previous file list
   docs = JSON.parse(contents);
   for (var i = 0; i < docs.length; i++) {
-    console.log(docs[i]);
     var node = document.createElement("a");
     node.href = "#";
+    if (i == currentDoc) {
+      node.style = "color: #f1f1f1;";
+    }
     node.setAttribute('onclick', `javascript:getDoc(${i});`);
     node.innerText = docs[i];
     filelist.appendChild(node);
@@ -95,6 +98,9 @@ function fade_and_delete(element) {
 }
 
 function emit_patch(patch) {
+  if (currentDoc == -1) {
+    return;
+  }
   var diff = dmp.patch_make(shadow, editor.value());
   var patch = dmp.patch_toText(diff);
   shadow = editor.value();
@@ -109,8 +115,15 @@ function emit_patch(patch) {
 function getDoc(index) {
   currentDoc = index;
   socket.emit('get_doc', index);
+  socket.emit('listdocs');
 }
 
-const interval = setInterval(function() {
-  socket.emit('listdocs', JSON.stringify(broadPatch));
+const regular = setInterval(function() {
+  socket.emit('listdocs');
 }, 10000);
+
+function addfile() {
+  var filename = prompt("Add a new file", "filename.txt");
+  socket.emit('addfile', filename);
+  socket.emit('listdocs');
+}
