@@ -19,7 +19,7 @@ html {
   .sidebar a {
     padding: 6px 8px 6px 16px;
     text-decoration: none;
-    font-size: 25px;
+    font-size: 20px;
     color: #666666;
     display: block;
   }
@@ -57,6 +57,15 @@ html {
     cursor: pointer;
  }
 
-.selected-doc a{
-  color: #f1f1f1;
+.document {
+  position: relative;
+
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: -5px;
+  border-style: none;
+  background: none;
 }

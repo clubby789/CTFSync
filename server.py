@@ -95,6 +95,9 @@ class File:
     def name(self):
         return os.path.basename(self.path)
 
+    def delete(self):
+        os.remove(self.path)
+
 
 docs = Folder('data')
 conns = ConnectionManager()
@@ -160,9 +163,18 @@ async def addfile(sid, data):
 
 
 @sio.on('disconnect')
-def disconnect(sid):
+async def disconnect(sid):
     conns.remove_client(sid)
     print('disconnect', sid)
+
+
+@sio.on('delete_doc')
+async def delete_doc(sid, data):
+    index = int(data)
+    docs[index].delete()
+    docs.items.pop(index)
+    await sio.emit('doclist', json.dumps([x.name for x in docs.files]),
+                   to=sid)
 
 
 def start_notes(port=8080):

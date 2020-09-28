@@ -40,13 +40,22 @@ socket.on('doclist', function(contents) {
   // Clear previous file list
   docs = JSON.parse(contents);
   for (var i = 0; i < docs.length; i++) {
-    var node = document.createElement("a");
-    node.href = "#";
+    var node = document.createElement("div");
+    node.classList = "document";
+    var link = document.createElement("a");
+    link.href = "#";
     if (i == currentDoc) {
-      node.style = "color: #f1f1f1;";
+      link.style = "color: #f1f1f1;";
     }
-    node.setAttribute('onclick', `javascript:getDoc(${i});`);
-    node.innerText = docs[i];
+    link.setAttribute('onclick', `javascript:getDoc(${i});`);
+    link.innerText = docs[i];
+    node.appendChild(link);
+
+    var closeBtn = document.createElement("button");
+    closeBtn.classList = "close-btn";
+    closeBtn.innerText = "X";
+    closeBtn.setAttribute('onclick', `javascript:delete_file(${i});`);
+    node.appendChild(closeBtn);
     filelist.appendChild(node);
   }
 });
@@ -126,4 +135,8 @@ function addfile() {
   var filename = prompt("Add a new file", "filename.txt");
   socket.emit('addfile', filename);
   socket.emit('listdocs');
+}
+
+function delete_file(index) {
+  socket.emit('delete_doc', index);
 }
