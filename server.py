@@ -126,9 +126,7 @@ async def index(request):
 @sio.on('connect')
 async def connect(sid, environ):
     print("connect", sid)
-<<<<<<< HEAD
-    await sio.emit('dump', docs[0].contents, to=sid)
-=======
+
     client = Client(sid)
     conns.add_client(client)
 
@@ -138,23 +136,11 @@ async def listdocs(sid):
     await sio.emit('doclist', json.dumps([x.name for x in docs.files]),
                    to=sid)
 
->>>>>>> 2ac882d50242cd075ab75bb5f99c1fd985bd0b11
 
 @sio.on('get_doc')
 async def get_doc(sid, docid):
     await sio.emit('dump', docs.items[docid].document.contents, to=sid)
 
-<<<<<<< HEAD
-@sio.on('patch')
-async def message(sid, data):
-    docs[0].apply_diff(data)
-    await sio.emit('patch', data,
-                   broadcast=True, skip_sid=sid)
-
-
-@sio.on('disconnect')
-def disconnect(sid):
-=======
 
 @sio.on('patch')
 async def message(sid, data):
@@ -180,7 +166,6 @@ async def addfile(sid, data):
 @sio.on('disconnect')
 async def disconnect(sid):
     conns.remove_client(sid)
->>>>>>> 2ac882d50242cd075ab75bb5f99c1fd985bd0b11
     print('disconnect', sid)
 
 
