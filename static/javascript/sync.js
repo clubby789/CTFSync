@@ -1,9 +1,8 @@
 var socket = io();
-var latest;
 var timer;
-let interval = 100;
+var interval = 100;
 var shadow;
-var config = { 
+var config = {
                 element: document.getElementById("msgdoc"),
                 spellChecker: false,
                 autofocus: true,
@@ -13,29 +12,33 @@ var config = {
                 },
                 tabSize: 4
               };
-var editor = new SimpleMDE({ element: document.getElementById("msgdoc"), spellChecker: false, autofocus: true,  });
+var editor = new SimpleMDE({
+                 element: document.getElementById("msgdoc"),
+                 spellChecker: false,
+                 autofocus: true
+             });
 var currentDoc = -1;
 var docs = [];
 
-editor.codemirror.on('keyup', function() {
+editor.codemirror.on("keyup", function() {
   clearTimeout(timer);
   timer = setTimeout(emit_patch, interval);
 });
 
-editor.codemirror.on('keydown', function() {
+editor.codemirror.on("keydown", function() {
   clearTimeout(timer);
 });
 
-let dmp = new diff_match_patch();
+var dmp = new diff_match_patch();
 
-socket.on('connect', function(){
-  console.log('Connected to server')
-  socket.emit('listdocs');
+socket.on("connect", function(){
+  console.log("Connected to server");
+  socket.emit("listdocs");
 });
-socket.on('disconnect', function(){console.log('Disconnected from server')});
+socket.on("disconnect", function(){console.log("Disconnected from server");});
 
-socket.on('doclist', function(contents) {
-  var filelist = document.getElementById('filelist');
+socket.on("doclist", function(contents) {
+  var filelist = document.getElementById("filelist");
   filelist.innerHTML = "";
   // Clear previous file list
   docs = JSON.parse(contents);
@@ -47,27 +50,27 @@ socket.on('doclist', function(contents) {
     if (i == currentDoc) {
       link.style = "color: #f1f1f1;";
     }
-    link.setAttribute('onclick', `javascript:getDoc(${i});`);
+    link.setAttribute("onclick", `javascript:getDoc(${i});`);
     link.innerText = docs[i];
     node.appendChild(link);
 
     var closeBtn = document.createElement("button");
     closeBtn.classList = "close-btn";
     closeBtn.innerText = "X";
-    closeBtn.setAttribute('onclick', `javascript:delete_file(${i});`);
+    closeBtn.setAttribute("onclick", `javascript:delete_file(${i});`);
     node.appendChild(closeBtn);
     filelist.appendChild(node);
   }
 });
 
-socket.on('dump', function(contents) {
+socket.on("dump", function(contents) {
   editor.value(contents);
   shadow = contents;
 });
 
-socket.on('patch', function(patch){
+socket.on("patch", function(patch){
   var data = JSON.parse(patch);
-  var patchOb = dmp.patch_fromText(data['patch']);
+  var patchOb = dmp.patch_fromText(data.patch);
   var oldpos = editor.codemirror.indexFromPos(editor.codemirror.getCursor());
   var newpos = oldpos; // Hold new offset
   var processed = 0; // Hold number of chars iterated through in the patches
@@ -83,12 +86,12 @@ socket.on('patch', function(patch){
   res = dmp.patch_apply(patchOb, shadow);
   shadow = res[0];
   editor.codemirror.setCursor(editor.codemirror.posFromIndex(newpos));
-  var cursor = editor.codemirror.posFromIndex(data['cursor']['pos']);
+  var cursor = editor.codemirror.posFromIndex(data.cursor.pos);
   var cursorCoords =  editor.codemirror.cursorCoords(cursor);
-  var cursorElement = document.createElement('span');
-  cursorElement.style.borderLeftStyle = 'solid';
-  cursorElement.style.borderLeftWidth = '2px';
-  cursorElement.style.borderLeftColor = data['cursor']['colour'];
+  var cursorElement = document.createElement("span");
+  cursorElement.style.borderLeftStyle = "solid";
+  cursorElement.style.borderLeftWidth = "2px";
+  cursorElement.style.borderLeftColor = data.cursor.colour;
   cursorElement.style.height = `${(cursorCoords.bottom - cursorCoords.top)}px`;
   cursorElement.style.padding = 0;
   cursorElement.style.zIndex = 0;
@@ -111,32 +114,32 @@ function emit_patch(patch) {
     return;
   }
   var diff = dmp.patch_make(shadow, editor.value());
-  var patch = dmp.patch_toText(diff);
+  patch = dmp.patch_toText(diff);
   shadow = editor.value();
   var broadPatch = {
     "patch": patch,
     "doc": currentDoc,
     "pos": editor.codemirror.indexFromPos(editor.codemirror.getCursor())
   }
-  socket.emit('patch', JSON.stringify(broadPatch));
+  socket.emit("patch", JSON.stringify(broadPatch));
 }
 
 function getDoc(index) {
   currentDoc = index;
-  socket.emit('get_doc', index);
-  socket.emit('listdocs');
+  socket.emit("get_doc", index);
+  socket.emit("listdocs");
 }
 
 const regular = setInterval(function() {
-  socket.emit('listdocs');
+  socket.emit("listdocs");
 }, 10000);
 
 function addfile() {
   var filename = prompt("Add a new file", "filename.txt");
-  socket.emit('addfile', filename);
-  socket.emit('listdocs');
+  socket.emit("addfile", filename);
+  socket.emit("listdocs");
 }
 
 function delete_file(index) {
-  socket.emit('delete_doc', index);
+  socket.emit("delete_doc", index);
 }
