@@ -1,4 +1,7 @@
 var socket = io();
+if (window.location.hash && window.location.hash.includes('token=')) {
+  localStorage.setItem("token", window.location.hash.substr(7));
+}
 var timer;
 var interval = 100;
 var shadow;
@@ -39,7 +42,7 @@ socket.on("connect", function(){
 
 socket.on("init", function(contents) {
   oauth = JSON.parse(contents);
-  if (oauth != false) {
+  if (oauth != false && localStorage.getItem('token') == null) {
     document.location = oauth.provider_uri + 'authorize?redirect=' + document.location;
   }
 });
@@ -145,10 +148,31 @@ const regular = setInterval(function() {
 
 function addfile() {
   var filename = prompt("Add a new file", "filename.txt");
+  if (oauth != false && localStorage.getItem('token') != null) {
+    var action = {
+      "type": "addfile",
+      "name": filename
+    } 
+  }
   socket.emit("addfile", filename);
   socket.emit("listdocs");
 }
 
 function delete_file(index) {
   socket.emit("delete_doc", index);
+}
+
+function oauth_action(action) {
+  var xhr = new XMLHttpRequest();
+  var url = "url";
+  xhr.open("POST", oauth.action_uri, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+          return JSON.parse(xhr.responseText);
+      }
+  };
+  action.token = localStorage.getItem('token');
+  var data = JSON.stringify(action);
+  xhr.send(data);
 }
