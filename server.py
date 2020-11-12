@@ -6,6 +6,7 @@ import glob
 import json
 import os
 
+
 dmp = diff_match_patch()
 sio = socketio.AsyncServer()
 
