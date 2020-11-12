@@ -136,8 +136,8 @@ async def connect(sid, environ):
     if oauth['enabled']:
         payload = json.dumps({
             'oauth': {
-                'provider_uri': config.getboolean('OAUTH', 'provider_uri'),
-                'action_uri': config.getboolean('OAUTH', 'action_uri')
+                'provider_uri': config.get('OAUTH', 'provider_uri'),
+                'action_uri': config.get('OAUTH', 'action_uri')
             }
         })
     else:
