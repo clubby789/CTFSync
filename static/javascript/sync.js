@@ -2,6 +2,7 @@ var socket = io();
 var timer;
 var interval = 100;
 var shadow;
+var oauth;
 var config = {
                 element: document.getElementById("msgdoc"),
                 spellChecker: false,
@@ -35,6 +36,14 @@ socket.on("connect", function(){
   console.log("Connected to server");
   socket.emit("listdocs");
 });
+
+socket.on("init", function(contents) {
+  oauth = JSON.parse(contents);
+  if (oauth != false) {
+    document.location = oauth.provider_uri + 'authorize?redirect=' + document.location;
+  }
+});
+
 socket.on("disconnect", function(){console.log("Disconnected from server");});
 
 socket.on("doclist", function(contents) {

@@ -5,10 +5,14 @@ import threading
 import glob
 import json
 import os
+import configparser
 
 
 dmp = diff_match_patch()
 sio = socketio.AsyncServer()
+config = configparser.ConfigParser()
+config.read('conf.ini')
+oauth = {}
 
 
 class ConnectionManager:
@@ -127,9 +131,20 @@ async def index(request):
 @sio.on('connect')
 async def connect(sid, environ):
     print("connect", sid)
-
     client = Client(sid)
     conns.add_client(client)
+    if oauth['enabled']:
+        payload = json.dumps({
+            'oauth': {
+                'provider_uri': config.getboolean('OAUTH', 'provider_uri'),
+                'action_uri': config.getboolean('OAUTH', 'action_uri')
+            }
+        })
+    else:
+        payload = json.dumps({
+            'oauth': False
+        })
+    await sio.emit('init', payload, to=sid)
 
 
 @sio.on('listdocs')
@@ -179,7 +194,13 @@ async def delete_doc(sid, data):
                    to=sid)
 
 
-def start_notes(port=8080):
+def start_notes():
+    port = config.getint('MISC', 'port')
+    oauth['enabled'] = config.getboolean('OAUTH', 'enabled')
+    if oauth['enabled']:
+        oauth['provider_uri'] = "http://localhost:5000/oauth/"
+        oauth['action_uri'] = "http://localhost:5000/oauth/api"
+
     init_docs()
     app = web.Application()
     app.router.add_static('/static/', 'static', name='static')
