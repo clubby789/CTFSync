@@ -2,8 +2,8 @@ import os
 
 
 def main(port):
-    from . import server
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    from . import server
     server.start_notes(port=port)
 
 
