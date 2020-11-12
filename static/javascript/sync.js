@@ -41,7 +41,8 @@ socket.on("connect", function(){
 });
 
 socket.on("init", function(contents) {
-  oauth = JSON.parse(contents);
+  oauth = JSON.parse(contents).oauth;
+  console.log(JSON.stringify(oauth));
   if (oauth != false && localStorage.getItem('token') == null) {
     document.location = oauth.provider_uri + 'authorize?redirect=' + document.location;
   }
