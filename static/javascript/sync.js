@@ -166,13 +166,17 @@ function oauth_action(action) {
   var xhr = new XMLHttpRequest();
   var url = "url";
   xhr.open("POST", oauth.action_uri, true);
-  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.onreadystatechange = function () {
       if (xhr.readyState === 4 && xhr.status === 200) {
           return JSON.parse(xhr.responseText);
       }
   };
+  let urlEncodedDataPairs = [], name;
+  for( name in action ) {
+    urlEncodedDataPairs.push(encodeURIComponent(name)+'='+encodeURIComponent(action[name]));
+  }
   action.token = localStorage.getItem('token');
-  var data = JSON.stringify(action);
+  var data = urlEncodedDataPairs.join("&");
   xhr.send(data);
 }
