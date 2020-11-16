@@ -172,11 +172,7 @@ function oauth_action(action) {
           return JSON.parse(xhr.responseText);
       }
   };
-  let urlEncodedDataPairs = [], name;
-  for( name in action ) {
-    urlEncodedDataPairs.push(encodeURIComponent(name)+'='+encodeURIComponent(action[name]));
-  }
   action.token = localStorage.getItem('token');
-  var data = urlEncodedDataPairs.join("&");
-  xhr.send(data);
+  var data = btoa(JSON.stringify(action));
+  xhr.send("action=" + data);
 }
