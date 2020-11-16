@@ -164,7 +164,6 @@ function delete_file(index) {
 
 function oauth_action(action) {
   var xhr = new XMLHttpRequest();
-  var url = "url";
   xhr.open("POST", oauth.action_uri, true);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.onreadystatechange = function () {
