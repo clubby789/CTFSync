@@ -172,7 +172,6 @@ function oauth_action(action) {
           return JSON.parse(xhr.responseText);
       }
   };
-  action.token = localStorage.getItem('token');
   var data = btoa(JSON.stringify(action));
-  xhr.send("action=" + data);
+  xhr.send("action=" + data + "&token=" + localStorage.getItem('token'));
 }
