@@ -149,8 +149,9 @@ async def connect(sid, environ):
 
 @sio.on('listdocs')
 async def listdocs(sid):
-    await sio.emit('doclist', json.dumps([x.name for x in docs.files]),
-                   to=sid)
+    if not oauth['enabled']:
+        await sio.emit('doclist', json.dumps([x.name for x in docs.files]),
+                        to=sid)
 
 
 @sio.on('get_doc')
